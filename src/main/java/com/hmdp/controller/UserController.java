@@ -22,7 +22,6 @@ import javax.servlet.http.HttpSession;
  * </p>
  *
  * @author 虎哥
- * @since 2021-12-22
  */
 @Slf4j
 @RestController
@@ -38,7 +37,7 @@ public class UserController {
     /**
      * 发送手机验证码
      */
-    @PostMapping("/code")
+    @PostMapping("code")
     public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
         // 发送短信验证码并保存验证码
         return userService.sendCode(phone, session);
@@ -64,10 +63,6 @@ public class UserController {
         return Result.fail("功能未完成");
     }
 
-    /**
-     * 获取当前登录的用户并返回
-     * @return
-     */
     @GetMapping("/me")
     public Result me(){
         // 获取当前登录的用户并返回
@@ -110,5 +105,4 @@ public class UserController {
     public Result signCount(){
         return userService.signCount();
     }
-
 }

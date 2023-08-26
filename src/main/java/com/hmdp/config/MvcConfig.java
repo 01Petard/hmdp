@@ -11,6 +11,7 @@ import javax.annotation.Resource;
 
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
+
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
@@ -30,22 +31,4 @@ public class MvcConfig implements WebMvcConfigurer {
         // token刷新的拦截器
         registry.addInterceptor(new RefreshTokenInterceptor(stringRedisTemplate)).addPathPatterns("/**").order(0);
     }
-//    @Override
-//    public void addInterceptors(InterceptorRegistry registry) {
-//        registry.addInterceptor(new RefreshTokenInterceptor())
-//                .addPathPatterns("/**")
-//                .order(0);
-//        registry.addInterceptor(new LoginInterceptor())
-//                .excludePathPatterns(
-//                        "/user/code",
-//                        "/user/login",
-//                        "/blog/hot",
-//                        "/shop/**",
-//                        "/shop-type/**",
-//                        "/upload/**",
-//                        "/voucher/**",
-//                        "/voucher-order/**")
-//                .order(1);
-//    }
-
 }
