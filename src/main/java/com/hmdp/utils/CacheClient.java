@@ -2,6 +2,7 @@ package com.hmdp.utils;
 
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -237,23 +238,43 @@ public class CacheClient {
         LocalDateTime expireTime = redisData.getExpireTime();
         if (expireTime.isAfter(LocalDateTime.now())) {
             //未过期，直接返回店铺
-            return JSONUtil.toBean((String) redisData.getData(), type);
+            return JSONUtil.toBean((JSONObject) redisData.getData(), type);
         } else { //缓存逻辑过期了，重建缓存
+            T t = dbFallback.apply(id);
             //获取互斥锁
-            if (tryLock(key, this.cacheMutexTTL, this.cacheMutexTTLTimeUnit)) {
+            if (tryLock(key + ":mutex", this.cacheMutexTTL, this.cacheMutexTTLTimeUnit)) {
                 CACHE_REBUILD_EXECUTOR.submit(() -> {
                     try {
                         //重建缓存
-                        return setWithLogicExpire(key, id, type, dbFallback, this.cacheLogicExpireTTL);
+                        this.setWithLogicExpire(key, t, this.cacheLogicExpireTTL);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     } finally {
-                        unLock(key);
+                        unLock(key + ":mutex");
                     }
                 });
             }
+            return t;
         }
-        return null;
+
+
+//        if (tryLock(key + ":mutex", this.cacheMutexTTL, this.cacheMutexTTLTimeUnit)){
+//            // 6.3.成功，开启独立线程，实现缓存重建
+//            CACHE_REBUILD_EXECUTOR.submit(() -> {
+//                try {
+//                    // 查询数据库
+//                    T t = dbFallback.apply(id);
+//                    // 重建缓存
+//                    this.setWithLogicExpire(key, id, type, dbFallback, this.cacheLogicExpireTTL);
+//                } catch (Exception e) {
+//                    throw new RuntimeException(e);
+//                }finally {
+//                    // 释放锁
+//                    unlock(lockKey);
+//                }
+//            });
+//        }
+//        return null;
     }
 
 
