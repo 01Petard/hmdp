@@ -8,8 +8,11 @@ import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
+import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +28,19 @@ import java.time.LocalDateTime;
  * @since 2021-12-22
  */
 @Service
+@Slf4j
 public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
 
     @Resource
     private ISeckillVoucherService seckillVoucherService;
-
     @Resource
     private RedisIdWorker redisIdWorker;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 秒杀券下单
+     *
      * @param voucherId
      * @return
      */
@@ -58,11 +64,30 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
 
         Long userId = UserHolder.getUser().getId();
-        synchronized (userId.toString().intern()) {
+        //创建分布式锁对象
+        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+        //获取锁，并判断获取锁是否成功
+        boolean isLock = lock.tryLock(1200);
+        if (!isLock) {
+            //获取锁失败
+            return Result.fail("一人只能下一单哦！");
+        }
+        try {
             //获取事务有关的代理对象，这样只有当事务提交后才会放开锁，避免事务没提交就释放锁的情况
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             return proxy.createVoucherOrder(voucherId);
+        } catch (Exception e) {
+            log.error("ERROR: " + e.getMessage());
+            return Result.fail("发生错误：" + e.getMessage());
+        } finally {
+            lock.unlock();
         }
+//        //单体锁（非分布式锁）
+//        synchronized (userId.toString().intern()) {
+//            //获取事务有关的代理对象，这样只有当事务提交后才会放开锁，避免事务没提交就释放锁的情况
+//            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
+//            return proxy.createVoucherOrder(voucherId);
+//        }
     }
 
     /**
