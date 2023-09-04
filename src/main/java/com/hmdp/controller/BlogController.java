@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Blog;
-import com.hmdp.entity.User;
 import com.hmdp.service.IBlogService;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.SystemConstants;
@@ -32,6 +31,12 @@ public class BlogController {
     @Resource
     private IUserService userService;
 
+    /**
+     * 发布博客
+     *
+     * @param blog
+     * @return
+     */
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
         // 获取登录用户
@@ -43,12 +48,28 @@ public class BlogController {
         return Result.ok(blog.getId());
     }
 
+    /**
+     * 查看博客
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    public Result saveBlog(@PathVariable Long id) {
+        return blogService.queryBlogById(id);
+    }
+
+    /**
+     * 博客：点赞、取消点赞
+     *
+     * @param id
+     * @return
+     */
     @PutMapping("/like/{id}")
     public Result likeBlog(@PathVariable("id") Long id) {
-        // 修改点赞数量
-        blogService.update()
-                .setSql("liked = liked + 1").eq("id", id).update();
-        return Result.ok();
+//        // 修改点赞数量
+//        blogService.update().setSql("liked = liked + 1").eq("id", id).update();
+        return Result.ok(blogService.likeBlog(id));
     }
 
     @GetMapping("/of/me")
@@ -56,8 +77,7 @@ public class BlogController {
         // 获取登录用户
         UserDTO user = UserHolder.getUser();
         // 根据用户查询
-        Page<Blog> page = blogService.query()
-                .eq("user_id", user.getId()).page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
+        Page<Blog> page = blogService.query().eq("user_id", user.getId()).page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
         // 获取当前页数据
         List<Blog> records = page.getRecords();
         return Result.ok(records);
@@ -65,19 +85,6 @@ public class BlogController {
 
     @GetMapping("/hot")
     public Result queryHotBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
-        // 根据用户查询
-        Page<Blog> page = blogService.query()
-                .orderByDesc("liked")
-                .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
-        // 获取当前页数据
-        List<Blog> records = page.getRecords();
-        // 查询用户
-        records.forEach(blog ->{
-            Long userId = blog.getUserId();
-            User user = userService.getById(userId);
-            blog.setName(user.getNickName());
-            blog.setIcon(user.getIcon());
-        });
-        return Result.ok(records);
+        return blogService.queryHotBlog(current);
     }
 }
