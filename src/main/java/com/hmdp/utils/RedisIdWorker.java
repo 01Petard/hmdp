@@ -14,10 +14,10 @@ public class RedisIdWorker {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    public RedisIdWorker(){
+    public RedisIdWorker() {
     }
 
-    public RedisIdWorker(StringRedisTemplate stringRedisTemplate){
+    public RedisIdWorker(StringRedisTemplate stringRedisTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
     }
 
@@ -38,6 +38,11 @@ public class RedisIdWorker {
      */
     private static final int COUNT_BITS = 32;
 
+    /**
+     * 生成一个order订单号
+     * @param keyPrefix 订单的前缀符，比如”order“、”shop“等等
+     * @return
+     */
     public long nextId(String keyPrefix) {
         //1、生成时间戳
         LocalDateTime now = LocalDateTime.now();
