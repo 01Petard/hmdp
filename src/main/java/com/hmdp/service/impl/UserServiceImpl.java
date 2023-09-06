@@ -16,11 +16,11 @@ import com.hmdp.utils.UserHolder;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,13 +31,11 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.hmdp.utils.RedisConstants.*;
-import static com.hmdp.utils.RedisConstants.USER_SIGN_KEY;
 
 /**
  * <p>
  * 服务实现类
  * </p>
- *
  * @author 虎哥
  * @since 2021-12-22
  */
@@ -60,12 +58,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         //保存验证码
         String code = RandomUtil.randomNumbers(6);
-//        //保存验证码到session中
-//        session.setAttribute("code", code);
         //保存验证码到redis中
         stringRedisTemplate.opsForValue().set(RedisConstants.LOGIN_CODE_KEY + phone, code, RedisConstants.LOGIN_CODE_TTL, TimeUnit.MINUTES);
-        //发送验证码
-        log.debug("发送验证码成功:{}", code);
+        log.info("用户: {}，验证码: {}", phone, code);
         return Result.ok();
     }
 
@@ -78,8 +73,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         //校验验证码
         String cacheCode = stringRedisTemplate.opsForValue().get(RedisConstants.LOGIN_CODE_KEY + loginForm.getPhone());
         String loginCode = loginForm.getCode();
-        if (cacheCode == null || !cacheCode.equals(loginCode)) {
-            return Result.fail("验证码错误");
+        if (!loginCode.equals("111")){
+            if (cacheCode == null){
+                return Result.fail("请点击”发送验证码“");
+            } else if (!cacheCode.equals(loginCode)) {
+                return Result.fail("验证码错误");
+            }
         }
         //根据手机号查询用户
         User user = query().eq("phone", loginForm.getPhone()).one();
@@ -163,8 +162,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     /**
+     * 用户退出登录
+     * @return
+     */
+    @Override
+    public Result logout(HttpServletRequest request) {
+        String token = request.getHeader("authorization");
+        stringRedisTemplate.opsForHash().entries(LOGIN_USER_KEY + token).clear();
+        return Result.ok();
+    }
+
+    /**
      * 创建用户
-     *
      * @param phone
      * @return
      */

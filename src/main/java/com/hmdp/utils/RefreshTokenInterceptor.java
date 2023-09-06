@@ -1,7 +1,7 @@
 package com.hmdp.utils;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import com.hmdp.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -28,9 +28,8 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // 1.获取请求头中的token
         String token = request.getHeader("authorization");
-//        System.out.println("authorization: " + token);
         log.info("authorization: {}", token);
-        if (StrUtil.isBlank(token)) {
+        if (CharSequenceUtil.isBlank(token)) {
             return true;
         }
         // 2.基于TOKEN获取redis中的用户
