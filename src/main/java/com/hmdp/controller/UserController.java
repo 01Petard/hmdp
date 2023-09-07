@@ -72,6 +72,11 @@ public class UserController {
         return Result.ok(user);
     }
 
+    /**
+     * 查看用户的个人信息
+     * @param userId
+     * @return
+     */
     @GetMapping("/info/{id}")
     public Result info(@PathVariable("id") Long userId) {
         // 查询详情
@@ -98,11 +103,19 @@ public class UserController {
         return Result.ok(userDTO);
     }
 
+    /**
+     * 用户签到
+     * @return
+     */
     @PostMapping("/sign")
     public Result sign() {
         return userService.sign();
     }
 
+    /**
+     * 统计用户连续签到的天数
+     * @return
+     */
     @GetMapping("/sign/count")
     public Result signCount() {
         return userService.signCount();

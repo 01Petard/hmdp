@@ -17,4 +17,5 @@ public class RedisConstants {
     public static final String USER_SIGN_KEY = "sign:";
     public static final Long LOCK_TTL = 10L;
     public static final String FOLLOW = "follow:";
+    public static final String UV = "uv:";
 }

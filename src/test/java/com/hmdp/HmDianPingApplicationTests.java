@@ -11,6 +11,8 @@ import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -87,8 +89,25 @@ class HmDianPingApplicationTests {
             }
             stringRedisTemplate.opsForGeo().add(RedisConstants.SHOP_GEO_KEY + typeId, locations);
         }
+    }
 
-
+    @Test
+    void testHyperLogLog() {
+        LocalDateTime now = LocalDateTime.now();
+        String keySuffix = now.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        String[] values = new String[1000];
+        int j = 0;
+        for (int i = 0; i < 1000000; i++) {
+            j = i % 1000;
+            values[j] = "user_" + i;
+            if (j == 999) {
+                // values满了就发送到redis
+                stringRedisTemplate.opsForHyperLogLog().add(RedisConstants.UV + keySuffix, values);
+            }
+        }
+        //统计数量
+        Long count = stringRedisTemplate.opsForHyperLogLog().size(RedisConstants.UV + keySuffix);
+        System.out.println("UV: " + count);
     }
 
 }

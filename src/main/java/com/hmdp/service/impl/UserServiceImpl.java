@@ -73,8 +73,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         //校验验证码
         String cacheCode = stringRedisTemplate.opsForValue().get(RedisConstants.LOGIN_CODE_KEY + loginForm.getPhone());
         String loginCode = loginForm.getCode();
-        if (!loginCode.equals("111")){
-            if (cacheCode == null){
+        if (!loginCode.equals("111")) {
+            if (cacheCode == null) {
                 return Result.fail("请点击”发送验证码“");
             } else if (!cacheCode.equals(loginCode)) {
                 return Result.fail("验证码错误");
@@ -110,12 +110,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 2.获取日期
         LocalDateTime now = LocalDateTime.now();
         // 3.拼接key
-        String keySuffix = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
-        String key = USER_SIGN_KEY + userId + keySuffix;
-        // 4.获取今天是本月的第几天
+        String timeSuffix = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY + userId + timeSuffix;
+        // 4.获取今天是本月的第几天（从1到31）
         int dayOfMonth = now.getDayOfMonth();
         // 5.写入Redis SETBIT key offset 1
-        stringRedisTemplate.opsForValue().setBit(key, dayOfMonth - 1, true);
+        stringRedisTemplate.opsForValue().setBit(key, (dayOfMonth - 1), true);
         return Result.ok();
     }
 
