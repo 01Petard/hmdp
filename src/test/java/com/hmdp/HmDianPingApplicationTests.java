@@ -91,6 +91,9 @@ class HmDianPingApplicationTests {
         }
     }
 
+    /**
+     * UV统计
+     */
     @Test
     void testHyperLogLog() {
         LocalDateTime now = LocalDateTime.now();
