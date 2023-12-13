@@ -25,7 +25,7 @@ public class RedissonConfig {
     public RedissonClient redissonClient1() {
         // 配置
         Config config = new Config();
-        config.useSingleServer().setAddress("redis://192.168.113.129:6379");
+        config.useSingleServer().setAddress("redis://192.168.179.129:6379");
         // 创建RedissonClient对象
         return Redisson.create(config);
     }
@@ -34,7 +34,7 @@ public class RedissonConfig {
     public RedissonClient redissonClient2() {
         // 配置
         Config config = new Config();
-        config.useSingleServer().setAddress("redis://192.168.113.129:6380");
+        config.useSingleServer().setAddress("redis://192.168.179.129:6380");
         // 创建RedissonClient对象
         return Redisson.create(config);
     }
@@ -43,7 +43,7 @@ public class RedissonConfig {
     public RedissonClient redissonClient3() {
         // 配置
         Config config = new Config();
-        config.useSingleServer().setAddress("redis://192.168.113.129:6381");
+        config.useSingleServer().setAddress("redis://192.168.179.129:6381");
         // 创建RedissonClient对象
         return Redisson.create(config);
     }
